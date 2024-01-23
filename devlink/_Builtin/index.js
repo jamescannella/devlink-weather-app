@@ -1,3 +1,4 @@
+"use client";
 export * from "./Basic";
 export * from "./Tabs";
 export * from "./Dropdown";

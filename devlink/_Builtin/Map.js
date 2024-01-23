@@ -85,4 +85,3 @@ export function MapWidget({
     />
   );
 }
-export default Map;

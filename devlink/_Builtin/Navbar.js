@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   EASING_FUNCTIONS,
+  KEY_CODES,
   cj,
   debounce,
   extractElement,
@@ -14,6 +15,9 @@ const BREAKPOINTS = {
   small: 767,
   tiny: 479,
 };
+function getLinksList(root) {
+  return root.querySelectorAll(".w-nav-menu .w-nav-link");
+}
 export const NavbarContext = React.createContext({
   animDirect: 1,
   animOver: false,
@@ -23,14 +27,17 @@ export const NavbarContext = React.createContext({
   duration: 400,
   easing2: "ease",
   easing: "ease",
-  getBodyHeight: () => {},
-  getOverlayHeight: () => {},
+  getBodyHeight: () => undefined,
+  getOverlayHeight: () => {
+    return undefined;
+  },
   isOpen: false,
   noScroll: false,
-  toggleOpen: () => {},
+  toggleOpen: () => undefined,
   navbarMounted: false,
   menu: undefined,
   root: undefined,
+  setFocusedLink: () => undefined,
 });
 function getAnimationKeyframes({ axis = "Y", start, end }) {
   const t = `translate${axis}`;
@@ -43,6 +50,7 @@ export function NavbarWrapper(props) {
   const menu = React.useRef(null);
   const animOver = /^over/.test(animation);
   const animDirect = /left$/.test(animation) ? -1 : 1;
+  const [focusedLink, setFocusedLink] = React.useState(-1);
   const getBodyHeight = React.useCallback(() => {
     if (isServer) return;
     return docHeight
@@ -66,7 +74,6 @@ export function NavbarWrapper(props) {
   const [isOpen, setIsOpen] = React.useState(false);
   const toggleOpen = debounce(() => {
     if (!menu.current) return;
-    // menu is open and should be closed
     if (isOpen) {
       const keyframes = animOver
         ? getAnimationKeyframes({
@@ -85,11 +92,11 @@ export function NavbarWrapper(props) {
       };
       return;
     }
+    setFocusedLink(-1);
     setIsOpen(!isOpen);
   });
   useLayoutEffect(() => {
     if (!menu.current) return;
-    // menu is closed and will open, but the animation only runs when isOpen is true
     if (isOpen) {
       const keyframes = animOver
         ? getAnimationKeyframes({
@@ -113,7 +120,6 @@ export function NavbarWrapper(props) {
     getOffsetHeight,
     isOpen,
   ]);
-  // if the menu is opened and noScroll === false prevent scrolling
   useLayoutEffect(() => {
     if (isOpen && noScroll) {
       document.body.style.overflowY = "hidden";
@@ -124,9 +130,14 @@ export function NavbarWrapper(props) {
       document.body.style.overflowY = "";
     };
   }, [isOpen, noScroll]);
-  // Closes menu when the window is resized
   const closeOnResize = React.useCallback(() => setIsOpen(false), [setIsOpen]);
-  useResizeObserver(root, closeOnResize);
+  useResizeObserver(root, closeOnResize, { onlyWidth: true });
+  React.useEffect(() => {
+    if (root.current) {
+      const links = getLinksList(root.current);
+      links[focusedLink ?? 0]?.focus();
+    }
+  }, [focusedLink]);
   return (
     <NavbarContext.Provider
       value={{
@@ -140,16 +151,13 @@ export function NavbarWrapper(props) {
         isOpen,
         toggleOpen,
         navbarMounted: true,
+        setFocusedLink,
       }}
     >
       <Navbar {...props} />
     </NavbarContext.Provider>
   );
 }
-/**
- * Navbar menu gets appended to the overlay when it's open.
- * This function extracts the child menu when that's the case.
- * */
 const maybeExtractChildMenu = (children, isOpen) => {
   if (!isOpen) return { childMenu: null, rest: children };
   const { extracted, tree } = extractElement(
@@ -159,11 +167,12 @@ const maybeExtractChildMenu = (children, isOpen) => {
   return { childMenu: extracted, rest: tree };
 };
 function Navbar({ tag = "div", className = "", children, config, ...props }) {
-  const { root, collapse } = React.useContext(NavbarContext);
+  const { root, collapse, setFocusedLink } = React.useContext(NavbarContext);
   const [shouldExtractMenu, setShouldExtractMenu] = React.useState(true);
   const extractMenuCallback = React.useCallback(
-    (entry) =>
-      setShouldExtractMenu(entry.contentRect.width <= BREAKPOINTS[collapse]),
+    (entry) => {
+      setShouldExtractMenu(entry.contentRect.width <= BREAKPOINTS[collapse]);
+    },
     [setShouldExtractMenu]
   );
   const bodyRef = React.useRef(
@@ -174,6 +183,49 @@ function Navbar({ tag = "div", className = "", children, config, ...props }) {
     () => maybeExtractChildMenu(children, shouldExtractMenu),
     [children, shouldExtractMenu]
   );
+  const handleFocus = (e) => {
+    const linkList = root.current ? Array.from(getLinksList(root.current)) : [];
+    const linkAmount = linkList.length;
+    switch (e.key) {
+      case KEY_CODES.ARROW_LEFT:
+      case KEY_CODES.ARROW_UP: {
+        e.preventDefault();
+        setFocusedLink((prev) => Math.max(prev - 1, 0));
+        break;
+      }
+      case KEY_CODES.ARROW_RIGHT:
+      case KEY_CODES.ARROW_DOWN: {
+        e.preventDefault();
+        setFocusedLink((prev) => Math.min(prev + 1, linkAmount - 1));
+        break;
+      }
+      case KEY_CODES.HOME: {
+        e.preventDefault();
+        setFocusedLink(0);
+        break;
+      }
+      case KEY_CODES.END: {
+        e.preventDefault();
+        setFocusedLink(linkAmount - 1);
+        break;
+      }
+      case KEY_CODES.TAB: {
+        setTimeout(() => {
+          setFocusedLink(
+            linkList.findIndex((link) => link === document.activeElement)
+          );
+        }, 0);
+        break;
+      }
+      case KEY_CODES.SPACE: {
+        e.preventDefault();
+        break;
+      }
+      default: {
+        return;
+      }
+    }
+  };
   return React.createElement(
     tag,
     {
@@ -182,9 +234,11 @@ function Navbar({ tag = "div", className = "", children, config, ...props }) {
       "data-collapse": config.collapse,
       "data-animation": config.animation,
       ref: root,
+      onKeyDown: handleFocus,
     },
     <>
       {rest}
+
       <NavbarOverlay>{childMenu}</NavbarOverlay>
     </>
   );
@@ -194,23 +248,24 @@ function NavbarOverlay({ children }) {
     React.useContext(NavbarContext);
   const overlayToggleOpen = React.useCallback(
     (e) => {
-      // prevent link clicks to close the overlay
       if (e.target === e.currentTarget) {
         toggleOpen();
       }
     },
     [toggleOpen]
   );
+  const overlayHeight = getOverlayHeight();
   return (
     <div
       className="w-nav-overlay"
       id="w-nav-overlay"
       style={{
         display: isOpen ? "block" : "none",
-        height: getOverlayHeight(),
+        height: overlayHeight ? overlayHeight : undefined,
         width: isOpen ? "100%" : 0,
       }}
       onClick={overlayToggleOpen}
+      onKeyDown={overlayToggleOpen}
     >
       {children}
     </div>
@@ -232,7 +287,9 @@ export function NavbarContainer({ children, ...props }) {
           }
           const { maxWidth } = getComputedStyle(node);
           node.style.maxWidth =
-            !maxWidth || maxWidth === "none" ? containerMaxWidth : "";
+            !maxWidth || maxWidth === "none" || maxWidth === containerMaxWidth
+              ? containerMaxWidth
+              : "";
         });
     },
     [isOpen]
@@ -279,5 +336,11 @@ export function NavbarButton({ tag = "div", className = "", ...props }) {
     tabIndex: 0,
     className: cj(className, "w-nav-button", isOpen && "w--open"),
     onClick: toggleOpen,
+    onKeyDown: (e) => {
+      if (e.key === KEY_CODES.ENTER || e.key === KEY_CODES.SPACE) {
+        e.preventDefault();
+        toggleOpen();
+      }
+    },
   });
 }

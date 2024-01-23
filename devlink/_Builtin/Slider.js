@@ -1,5 +1,5 @@
 import * as React from "react";
-import { triggerIXEvent } from "../interactions";
+import { IXContext, triggerIXEvent } from "../interactions";
 import { EASING_FUNCTIONS, KEY_CODES, cj, debounce } from "../utils";
 const DEFAULT_SLIDER_CONFIG = {
   navSpacing: 3,
@@ -21,13 +21,13 @@ const DEFAULT_SLIDER_CONFIG = {
 export const SliderContext = React.createContext({
   ...DEFAULT_SLIDER_CONFIG,
   slideAmount: 0,
-  setSlideAmount: () => {},
-  setCurrentSlide: () => {},
-  goToNextSlide: () => {},
-  goToPreviousSlide: () => {},
+  setSlideAmount: () => undefined,
+  setCurrentSlide: () => undefined,
+  goToNextSlide: () => undefined,
+  goToPreviousSlide: () => undefined,
   slide: { current: 0, previous: 0 },
   isAutoplayPaused: false,
-  setAutoplayPause: () => {},
+  setAutoplayPause: () => undefined,
 });
 function useSwipe({ onSwipeLeft, onSwipeRight, config }) {
   const SWIPE_DELTA = 150;
@@ -60,10 +60,6 @@ export function SliderWrapper({ className = "", ...props }) {
   const [prevSelectedSlide, setPrevSelectedSlide] = React.useState(0);
   const [isAutoplayPaused, setAutoplayPause] = React.useState(false);
   const setCurrentSlide = debounce((value) => {
-    /**
-     * Using a functional update (https://legacy.reactjs.org/docs/hooks-reference.html#functional-updates)
-     * so both current and previous slide indexes are always kept in sync
-     */
     setSelectedSlide((prev) => {
       setPrevSelectedSlide(prev);
       return value;
@@ -130,11 +126,6 @@ function useAutoplay() {
     const shouldAutoplay = autoplay && !autoMaxReached && !isAutoplayPaused;
     if (shouldAutoplay) {
       const interval = setInterval(() => {
-        /**
-         * Using functional update (https://legacy.reactjs.org/docs/hooks-reference.html#functional-updates)
-         * so autoMaxCount is left out of the dependency array and we don't infinitely
-         * re-render this component
-         */
         setAutoMaxCount((prev) => prev + 1);
         goToNextSlide();
       }, delay);
@@ -148,10 +139,26 @@ function useAutoplay() {
 export function SliderMask({ className = "", children, ...props }) {
   const { setSlideAmount } = React.useContext(SliderContext);
   const [isHovered, setHovered] = React.useState(false);
+  const [slides, setSlides] = React.useState([]);
   const { resumeAutoplay, pauseAutoplay } = useAutoplay();
   React.useEffect(() => {
-    setSlideAmount(React.Children.count(children));
-  }, [children, setSlideAmount]);
+    const extractNonFragmentChildren = (_children) => {
+      const childrenList = React.Children.toArray(_children).filter((child) =>
+        React.isValidElement(child)
+      );
+      if (
+        childrenList.length === 1 &&
+        childrenList[0]?.type === React.Fragment
+      ) {
+        return extractNonFragmentChildren(childrenList[0].props.children);
+      } else {
+        return childrenList;
+      }
+    };
+    const _slides = extractNonFragmentChildren(children);
+    setSlideAmount(_slides.length);
+    setSlides(_slides);
+  }, [children]);
   return (
     <div
       {...props}
@@ -167,11 +174,9 @@ export function SliderMask({ className = "", children, ...props }) {
       onFocus={() => pauseAutoplay()}
       onBlur={() => resumeAutoplay()}
     >
-      {React.Children.map(children, (child, index) => {
-        if (!React.isValidElement(child)) return null;
+      {slides.map((child, index) => {
         return React.cloneElement(child, {
           ...child.props,
-          // index is used to determine which slide is active
           index,
         });
       })}
@@ -197,10 +202,14 @@ export function SliderSlide({
     slide: { current, previous },
     slideAmount,
   } = React.useContext(SliderContext);
+  const { restartEngine } = React.useContext(IXContext);
+  React.useEffect(() => {
+    restartEngine && restartEngine();
+  }, [restartEngine]);
   const isSlideActive = current === index;
   const isSlidePrevious = previous === index;
   const animationStyle = React.useMemo(() => {
-    let base = {
+    const base = {
       transform: `translateX(-${current * 100}%)`,
       transition: `transform ${duration}ms ${EASING_FUNCTIONS[easing]} 0s`,
     };
@@ -294,6 +303,7 @@ export function SliderArrow({
       onKeyDown={(e) => {
         e.stopPropagation();
         if (e.key === KEY_CODES.ENTER || e.key === KEY_CODES.SPACE) {
+          e.preventDefault();
           handleSlideChange();
         }
       }}
@@ -402,7 +412,7 @@ function SliderDot({ index, focusedDot, handleFocus, setFocusedDot }) {
       ref.current?.focus();
     }
   }, [focusedDot, index]);
-  const isSlideActive = selectedSlide == index;
+  const isSlideActive = selectedSlide === index;
   const label = navNumbers ? index + 1 : "";
   return (
     <div

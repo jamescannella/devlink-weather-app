@@ -40,7 +40,8 @@ export function CurrentForecast({
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557a055e5a7632_Temp.svg"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6df_Temp.svg"
               />
               <_Builtin.Block className={_utils.cx(_styles, "label")} tag="div">
                 {"Temperature"}
@@ -72,7 +73,8 @@ export function CurrentForecast({
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557a055e5a7632_Temp.svg"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6df_Temp.svg"
               />
               <_Builtin.Block className={_utils.cx(_styles, "label")} tag="div">
                 {"Feels like"}
@@ -104,7 +106,8 @@ export function CurrentForecast({
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557a66ec5a7621_humidity.svg"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6f1_humidity.svg"
               />
               <_Builtin.Block className={_utils.cx(_styles, "label")} tag="div">
                 {"Humidity"}
@@ -136,7 +139,8 @@ export function CurrentForecast({
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557aa9ce5a761d_Precipitation.svg"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6c8_Precipitation.svg"
               />
               <_Builtin.Block className={_utils.cx(_styles, "label")} tag="div">
                 {"Precipitation"}
@@ -168,7 +172,8 @@ export function CurrentForecast({
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557a82285a762c_AQI.svg"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6cd_AQI.svg"
               />
               <_Builtin.Block className={_utils.cx(_styles, "label")} tag="div">
                 {"Outdoor AQI"}
@@ -200,7 +205,8 @@ export function CurrentForecast({
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557ad81e5a7629_sunset.svg"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6de_sunset.svg"
               />
               <_Builtin.Block className={_utils.cx(_styles, "label")} tag="div">
                 {"Sunset"}

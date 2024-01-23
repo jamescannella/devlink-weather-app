@@ -17,8 +17,8 @@ export function TopNav({ as: _Component = _Builtin.Block, locationForm }) {
         <_Builtin.DropdownWrapper
           className={_utils.cx(_styles, "dropdown")}
           tag="div"
-          data-hover={false}
-          data-delay={0}
+          delay={0}
+          hover={false}
         >
           <_Builtin.DropdownToggle
             className={_utils.cx(_styles, "dropdown-toggle")}
@@ -45,6 +45,7 @@ export function TopNav({ as: _Component = _Builtin.Block, locationForm }) {
             <_Builtin.Link
               className={_utils.cx(_styles, "dropdown-card")}
               button={false}
+              block="inline"
               options={{
                 href: "#",
               }}
@@ -76,6 +77,7 @@ export function TopNav({ as: _Component = _Builtin.Block, locationForm }) {
             <_Builtin.Link
               className={_utils.cx(_styles, "dropdown-card", "middle")}
               button={false}
+              block="inline"
               options={{
                 href: "#",
               }}
@@ -107,6 +109,7 @@ export function TopNav({ as: _Component = _Builtin.Block, locationForm }) {
             <_Builtin.Link
               className={_utils.cx(_styles, "dropdown-card", "middle")}
               button={false}
+              block="inline"
               options={{
                 href: "#",
               }}

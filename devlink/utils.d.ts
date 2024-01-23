@@ -1,23 +1,10 @@
 import * as React from "react";
 import { CSSModules } from "./types";
-/**
- * The cx function takes a css module object and the name of the element classes.
- * It will extract the final class names from the object if the class doesn't exist
- * on the object it will use the original name
- */
 export declare const cx: (style: CSSModules, ...classNames: string[]) => string;
-/**
- * The cj function takes care of eliminting classes that don't exist and joining
- * them with a white space.
- */
 export declare const cj: (
   ...classNames: (string | boolean | undefined)[]
 ) => string;
 export declare const removeUnescaped: (value: string) => string;
-/**
- * Function to replace the CSS classes in a given selector with the actual CSS values
- * using a given styles object (i.e. object with CSS class keys and CSS styles as values).
- */
 export declare const replaceSelector: (
   selector: string,
   styles: CSSModules
@@ -27,10 +14,6 @@ export declare function debounce<T extends (...args: any[]) => void>(
   func: T,
   timeout?: number
 ): (...args: Parameters<T>) => void;
-/**
- * cubic bezier functions have been extracted from this repository:
- * https://github.com/ai/easings.net
- */
 export declare const EASING_FUNCTIONS: {
   linear: string;
   ease: string;
@@ -63,10 +46,13 @@ export declare const EASING_FUNCTIONS: {
   "ease-in-out-back": string;
 };
 export declare const isServer: boolean;
-export declare const useLayoutEffect: typeof React.useLayoutEffect;
+export declare const useLayoutEffect: any;
 export declare function useResizeObserver(
   ref: React.RefObject<HTMLElement>,
-  fn: (entry: ResizeObserverEntry) => void
+  fn: (entry: ResizeObserverEntry) => void,
+  options?: {
+    onlyWidth?: boolean;
+  }
 ): void;
 export declare function isUrl(str: string): boolean;
 export declare function loadScript(
@@ -87,6 +73,7 @@ export declare const KEY_CODES: {
   ENTER: string;
   HOME: string;
   END: string;
+  TAB: string;
 };
 export declare function dispatchCustomEvent(
   element: Document | Element,

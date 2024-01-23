@@ -3,8 +3,8 @@ import { triggerIXEvent } from "../interactions";
 import { cj, debounce, EASING_FUNCTIONS, useLayoutEffect } from "../utils";
 const tabsContext = React.createContext({
   current: "",
-  onTabClick: () => {},
-  onLinkKeyDown: () => {},
+  onTabClick: () => undefined,
+  onLinkKeyDown: () => undefined,
 });
 export function TabsWrapper({
   className = "",
@@ -17,6 +17,15 @@ export function TabsWrapper({
   const [current, setCurrent] = React.useState("");
   const changeTab = React.useCallback(
     (next) => {
+      function updateTab() {
+        setCurrent(() => {
+          const nextTabHeader = document.querySelector(
+            `.w-tab-link[data-w-tab="${next}"]`
+          );
+          nextTabHeader?.focus();
+          return next;
+        });
+      }
       const currentTab = document.querySelector(
         `.w-tab-pane[data-w-tab="${current}"]`
       );
@@ -31,7 +40,7 @@ export function TabsWrapper({
       });
       if (animation) {
         animation.onfinish = () => {
-          setCurrent(next);
+          updateTab();
           nextTab?.animate([{ opacity: 0 }, { opacity: 1 }], {
             duration: fadeIn,
             fill: "forwards",
@@ -39,12 +48,11 @@ export function TabsWrapper({
           });
         };
       } else {
-        setCurrent(next);
+        updateTab();
       }
     },
     [current, easing, fadeIn, fadeOut]
   );
-  // Trigger first tab change manually
   const firstRender = React.useRef(true);
   useLayoutEffect(() => {
     if (!firstRender.current) return;
@@ -91,7 +99,7 @@ export function TabsMenu({ tag = "div", className = "", ...props }) {
     role: "tablist",
   });
 }
-export function TabsLink({ className = "", ...props }) {
+export function TabsLink({ className = "", children, ...props }) {
   const { current, onTabClick, onLinkKeyDown } = React.useContext(tabsContext);
   const isCurrent = current === props["data-w-tab"];
   const ref = React.useCallback(
@@ -116,7 +124,9 @@ export function TabsLink({ className = "", ...props }) {
       tabIndex={isCurrent ? 0 : -1}
       aria-selected={isCurrent}
       aria-controls={props["data-w-tab"]}
-    />
+    >
+      {children}
+    </a>
   );
 }
 export function TabsContent({ tag = "div", className = "", ...props }) {

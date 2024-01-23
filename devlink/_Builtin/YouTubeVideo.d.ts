@@ -1,5 +1,4 @@
-/// <reference types="react" />
-declare type YouTubeVideoProps = {
+type YouTubeVideoProps = {
   className?: string;
   title: string;
   videoId: string;
@@ -23,5 +22,5 @@ export declare function YouTubeVideo({
   muted,
   privacyMode,
   ...props
-}: YouTubeVideoProps): JSX.Element;
+}: YouTubeVideoProps): any;
 export {};

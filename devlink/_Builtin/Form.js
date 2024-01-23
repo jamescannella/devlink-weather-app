@@ -1,5 +1,8 @@
 import React from "react";
 import { loadScript } from "../utils";
+function onKeyDownInputHandlers(e) {
+  e.stopPropagation();
+}
 export function FormWrapper({
   className = "",
   state: initialState = "normal",
@@ -8,6 +11,8 @@ export function FormWrapper({
   ...props
 }) {
   const [state, setState] = React.useState(initialState);
+  const formName =
+    (children.find((c) => c.type === FormForm)?.props)["data-name"] ?? "Form";
   return React.createElement(
     "div",
     {
@@ -16,15 +21,17 @@ export function FormWrapper({
     },
     React.Children.map(children, (child) => {
       if (child.type === FormForm) {
+        const style = {};
+        if (state === "success") {
+          style.display = "none";
+        }
         return React.cloneElement(child, {
           ...child.props,
-          // @ts-ignore
+          style,
           onSubmit: (e) => {
             try {
               e.preventDefault();
-              // If grecaptcha is defined, it means there is a ReCaptcha in the form
               if (window.grecaptcha) {
-                // If the response is empty, it means the user didn't check the box
                 if (!window.grecaptcha?.getResponse()) {
                   alert(`Please confirm you’re not a robot.`);
                   return;
@@ -32,35 +39,46 @@ export function FormWrapper({
               }
               if (onSubmit) {
                 onSubmit(e);
-                setState("success");
               }
+              setState("success");
             } catch (err) {
-              /**
-               * Capture the error to correctly set the state, but rethrow it
-               * in case another error handling method is used above up in
-               * the tree (e.g. Error Boundaries)
-               */
               setState("error");
               throw err;
             }
           },
-          style: {
-            display: state == "normal" || state == "error" ? "block" : "none",
-          },
+          "aria-label": formName,
         });
       }
       if (child.type === FormSuccessMessage) {
+        const style = {};
+        if (state === "success") {
+          style.display = "block";
+        }
+        if (state === "error") {
+          style.display = "none";
+        }
         return React.cloneElement(child, {
           ...child.props,
-          // @ts-ignore
-          style: { display: state == "success" ? "block" : "none" },
+          style,
+          tabIndex: -1,
+          role: "region",
+          "aria-label": `${formName} success`,
         });
       }
       if (child.type === FormErrorMessage) {
+        const style = {};
+        if (state === "success") {
+          style.display = "none";
+        }
+        if (state === "error") {
+          style.display = "block";
+        }
         return React.cloneElement(child, {
           ...child.props,
-          // @ts-ignore
-          style: { display: state == "error" ? "block" : "none" },
+          tabIndex: -1,
+          role: "region",
+          "aria-label": `${formName} failure`,
+          style,
         });
       }
       return child;
@@ -75,16 +93,16 @@ export function FormBlockLabel(props) {
 }
 export function FormTextInput({ className = "", ...props }) {
   return React.createElement("input", {
-    type: "text",
-    className: className + " w-input",
     ...props,
+    className: className + " w-input",
+    onKeyDown: onKeyDownInputHandlers,
   });
 }
 export function FormTextarea({ className = "", ...props }) {
-  return React.createElement("input", {
-    type: "textarea",
-    className: className + " w-input",
+  return React.createElement("textarea", {
     ...props,
+    className: className + " w-input",
+    onKeyDown: onKeyDownInputHandlers,
   });
 }
 export function FormInlineLabel({ className = "", ...props }) {
@@ -105,38 +123,93 @@ export function FormRadioWrapper({ className = "", ...props }) {
     ...props,
   });
 }
-export function FormCheckboxInput({
+const HIDE_DEFAULT_INPUT_STYLES = {
+  opacity: 0,
+  position: "absolute",
+  zIndex: -1,
+};
+const CHECKED_CLASS = "w--redirected-checked";
+const FOCUSED_CLASS = "w--redirected-focus";
+const FOCUSED_VISIBLE_CLASS = "w--redirected-focus-visible";
+export function FormBooleanInput({
   className = "",
   checked = false,
+  type = "checkbox",
+  inputType,
+  customClassName,
   ...props
 }) {
-  const checkedProps = {};
-  if (typeof checked === "boolean") {
-    checkedProps["defaultChecked"] = checked;
-  }
-  return React.createElement("input", {
-    type: "checkbox",
-    className: className + " w-checkbox",
-    ...checkedProps,
-    ...props,
-  });
-}
-export function FormRadioInput({ className = "", inputType, ...props }) {
+  const [isChecked, setIsChecked] = React.useState(checked);
+  const [isFocused, setIsFocused] = React.useState(false);
+  const [isFocusedVisible, setIsFocusedVisible] = React.useState(false);
+  const wasClicked = React.useRef(false);
+  const inputProps = {
+    checked: isChecked,
+    type,
+    onChange: (e) => {
+      if (props.onChange) props.onChange(e);
+      setIsChecked((prevIsChecked) => !prevIsChecked);
+    },
+    onClick: (e) => {
+      if (props.onClick) props.onClick(e);
+      wasClicked.current = true;
+    },
+    onFocus: (e) => {
+      if (props.onFocus) props.onFocus(e);
+      setIsFocused(true);
+      if (!wasClicked.current) {
+        setIsFocusedVisible(true);
+      }
+    },
+    onBlur: (e) => {
+      if (props.onBlur) props.onBlur(e);
+      setIsFocused(false);
+      setIsFocusedVisible(false);
+      wasClicked.current = false;
+    },
+    onKeyDown: onKeyDownInputHandlers,
+  };
   if (inputType === "custom") {
-    // TODO: support FormCustomRadioInput
+    const pseudoModeClasses = `${isChecked ? ` ${CHECKED_CLASS}` : ""}${
+      isFocused ? ` ${FOCUSED_CLASS}` : ""
+    }${isFocusedVisible ? ` ${FOCUSED_CLASS} ${FOCUSED_VISIBLE_CLASS}` : ""} ${
+      customClassName ?? ""
+    }`;
+    const currentClassName = `${className}${pseudoModeClasses}`;
+    return (
+      <>
+        <div className={currentClassName} />
+        <input {...props} {...inputProps} style={HIDE_DEFAULT_INPUT_STYLES} />
+      </>
+    );
   }
-  return React.createElement("input", {
-    className: className + " w-radio-input",
-    ...props,
-  });
+  return <input className={className} {...props} {...inputProps} />;
+}
+export function FormCheckboxInput({ className = "", ...props }) {
+  return (
+    <FormBooleanInput
+      {...props}
+      type="checkbox"
+      className={className + " w-checkbox-input"}
+    />
+  );
+}
+export function FormRadioInput({ className = "", ...props }) {
+  return (
+    <FormBooleanInput
+      {...props}
+      type="radio"
+      className={className + " w-radio-input"}
+    />
+  );
 }
 const MAX_FILE_SIZE_DEFAULT = 10485760;
 const FileUploadContext = React.createContext({
   files: null,
   error: null,
   maxSize: MAX_FILE_SIZE_DEFAULT,
-  setFiles: () => {},
-  setError: () => {},
+  setFiles: () => undefined,
+  setError: () => undefined,
 });
 export function FormFileUploadWrapper({
   maxSize = MAX_FILE_SIZE_DEFAULT,
@@ -172,9 +245,10 @@ export function FormFileUploadDefault({ className = "", ...props }) {
 export function FormFileUploadInput({ className = "", ...props }) {
   const { setFiles, setError, maxSize } = React.useContext(FileUploadContext);
   return React.createElement("input", {
-    type: "file",
-    className: className + " w-file-upload-input",
     ...props,
+    className: className + " w-file-upload-input",
+    type: "file",
+    onKeyDown: onKeyDownInputHandlers,
     onChange: (e) => {
       if (e.target.files) {
         if (e.target.files[0].size <= maxSize) {
@@ -254,7 +328,7 @@ export function FormFileUploadSuccess({ className = "", ...props }) {
     ...props,
     style: {
       ...props.style,
-      display: !!files && !error ? "block" : "none",
+      display: Boolean(files) && !error ? "block" : "none",
     },
   });
 }
@@ -292,7 +366,7 @@ export function FormFileUploadError({ className = "", ...props }) {
     ...props,
     style: {
       ...props.style,
-      display: !!error ? "block" : "none",
+      display: error ? "block" : "none",
     },
   });
 }
@@ -309,10 +383,11 @@ export function FormFileUploadErrorMsg({ errors, className = "", ...props }) {
 }
 export function FormButton({ className = "", value, ...props }) {
   return React.createElement("input", {
+    ...props,
     type: "submit",
     value: value ?? "",
     className: className + " w-button",
-    ...props,
+    onKeyDown: onKeyDownInputHandlers,
   });
 }
 export function SearchForm(props) {
@@ -320,17 +395,19 @@ export function SearchForm(props) {
 }
 export function SearchInput({ className = "", ...props }) {
   return React.createElement("input", {
+    ...props,
     type: "text",
     className: className + " w-input",
-    ...props,
+    onKeyDown: onKeyDownInputHandlers,
   });
 }
 export function SearchButton({ value = "", className = "", ...props }) {
   return React.createElement("input", {
+    ...props,
     type: "submit",
     value,
     className: className + " w-button",
-    ...props,
+    onKeyDown: onKeyDownInputHandlers,
   });
 }
 export function FormSuccessMessage({ className = "", ...props }) {
@@ -347,7 +424,6 @@ export function FormErrorMessage({ className = "", ...props }) {
 }
 function hasValue(str) {
   if (typeof str !== "string") return false;
-  //   is &nbsp
   return str.replace(/^[s ]+|[s ]+$/g, "").length > 0;
 }
 export function FormSelect({ options, className = "", ...props }) {

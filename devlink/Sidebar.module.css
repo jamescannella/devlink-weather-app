@@ -244,12 +244,6 @@
   padding: 0px;
 }
 
-@media screen and (max-width: 991px) {
-  .hamburger-menu-wrapper:global(.w--open) {
-    background-color: transparent;
-  }
-}
-
 .hamburger-menu-wrapper:global(.w--open) {
   background-color: transparent;
 }
@@ -266,6 +260,12 @@
   .hamburger-menu-wrapper:hover {
     transform: scale3d(1.1, 1.1, 1.01);
     transform-style: preserve-3d;
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .hamburger-menu-wrapper:global(.w--open) {
+    background-color: transparent;
   }
 }
 

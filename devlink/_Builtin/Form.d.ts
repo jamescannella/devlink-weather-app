@@ -1,8 +1,9 @@
 import React from "react";
 import { Props } from "./Basic";
-declare type FormState = "normal" | "success" | "error";
-declare type FormWrapperProps = Props<"div"> & {
+type FormState = "normal" | "success" | "error";
+type FormWrapperProps = Props<"div"> & {
   state?: FormState;
+  onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
   children: React.ReactElement<
     typeof FormForm | typeof FormSuccessMessage | typeof FormErrorMessage
   >[];
@@ -19,23 +20,24 @@ export declare function FormWrapper({
   children,
   ...props
 }: FormWrapperProps): any;
-declare type FormSelect = {
+type FormSelect = {
   options: Array<{
     v: string;
     t: string;
   }>;
 };
-declare type FormProps<T extends keyof HTMLElementTagNameMap> = Props<T>;
+type FormProps<T extends keyof HTMLElementTagNameMap> = Props<T>;
 export declare function FormForm(props: FormProps<"form">): any;
 export declare function FormBlockLabel(props: FormProps<"label">): any;
-declare type FormInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type FormInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   inputType?: string;
+  customClassName?: string;
 };
 export declare function FormTextInput({
   className,
   ...props
 }: FormInputProps): any;
-declare type FormTextAreaProps = React.InputHTMLAttributes<HTMLTextAreaElement>;
+type FormTextAreaProps = React.InputHTMLAttributes<HTMLTextAreaElement>;
 export declare function FormTextarea({
   className,
   ...props
@@ -52,17 +54,23 @@ export declare function FormRadioWrapper({
   className,
   ...props
 }: FormProps<"label">): any;
-export declare function FormCheckboxInput({
+export declare function FormBooleanInput({
   className,
   checked,
+  type,
+  inputType,
+  customClassName,
+  ...props
+}: FormInputProps): any;
+export declare function FormCheckboxInput({
+  className,
   ...props
 }: FormInputProps): any;
 export declare function FormRadioInput({
   className,
-  inputType,
   ...props
 }: FormInputProps): any;
-declare type FileUploadWrapperProps = Props<"div"> & {
+type FileUploadWrapperProps = Props<"div"> & {
   maxSize?: number;
 };
 export declare function FormFileUploadWrapper({
@@ -76,7 +84,7 @@ export declare function _FormFileUploadWrapper({
 export declare function FormFileUploadDefault({
   className,
   ...props
-}: FormProps<"div">): any;
+}: FormProps<"div">): React.DOMElement<any, any>;
 export declare function FormFileUploadInput({
   className,
   ...props
@@ -108,7 +116,7 @@ export declare function FormFileUploadUploadingIcon({
 export declare function FormFileUploadSuccess({
   className,
   ...props
-}: FormProps<"div">): any;
+}: FormProps<"div">): React.DOMElement<any, any>;
 export declare function FormFileUploadFile({
   className,
   ...props
@@ -124,8 +132,8 @@ export declare function FormFileUploadRemoveLink({
 export declare function FormFileUploadError({
   className,
   ...props
-}: FormProps<"div">): any;
-declare type FormErrorMessageProps = HTMLDivElement & {
+}: FormProps<"div">): React.DOMElement<any, any>;
+type FormErrorMessageProps = HTMLDivElement & {
   errors: {
     SIZE_ERROR: string;
     TYPE_ERROR: string;
@@ -165,7 +173,7 @@ export declare function FormSelect({
   className,
   ...props
 }: FormProps<"select"> & FormSelect): any;
-declare type FormReCaptchaProps = {
+type FormReCaptchaProps = {
   siteKey: string;
   theme?: "light" | "dark";
   size?: "compact" | "normal" | "invisible";
@@ -174,5 +182,5 @@ export declare function FormReCaptcha({
   siteKey,
   theme,
   size,
-}: FormReCaptchaProps): JSX.Element;
+}: FormReCaptchaProps): any;
 export {};

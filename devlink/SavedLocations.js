@@ -13,6 +13,7 @@ export function SavedLocations({ as: _Component = _Builtin.Block }) {
         <_Builtin.Link
           className={_utils.cx(_styles, "card")}
           button={false}
+          block="inline"
           options={{
             href: "#",
           }}
@@ -35,7 +36,8 @@ export function SavedLocations({ as: _Component = _Builtin.Block }) {
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557aa4fc5a7633_Group%201287.png"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6f2_Group%201287.png"
               />
               <_Builtin.Block
                 className={_utils.cx(_styles, "temp-small")}
@@ -49,6 +51,7 @@ export function SavedLocations({ as: _Component = _Builtin.Block }) {
         <_Builtin.Link
           className={_utils.cx(_styles, "card")}
           button={false}
+          block="inline"
           options={{
             href: "#",
           }}
@@ -71,7 +74,8 @@ export function SavedLocations({ as: _Component = _Builtin.Block }) {
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557ab0805a763b_Group%201263.png"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6fc_Group%201263.png"
               />
               <_Builtin.Block
                 className={_utils.cx(_styles, "temp-small")}
@@ -85,6 +89,7 @@ export function SavedLocations({ as: _Component = _Builtin.Block }) {
         <_Builtin.Link
           className={_utils.cx(_styles, "card")}
           button={false}
+          block="inline"
           options={{
             href: "#",
           }}
@@ -107,7 +112,8 @@ export function SavedLocations({ as: _Component = _Builtin.Block }) {
                 loading="lazy"
                 width="auto"
                 height="auto"
-                src="https://uploads-ssl.webflow.com/63d85500e0557a18cd5a7601/63d85500e0557ad0845a763e_Group%201273.png"
+                alt=""
+                src="https://uploads-ssl.webflow.com/65af1682f352a2746f3ae671/65af1683f352a2746f3ae6fb_Group%201273.png"
               />
               <_Builtin.Block
                 className={_utils.cx(_styles, "temp-small")}
